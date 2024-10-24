@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'agent-1' }
+    agent { label 'slave' }
 
     environment {
         DOCKER_USERNAME = 'venkatravi26071994'
