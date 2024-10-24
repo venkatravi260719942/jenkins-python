@@ -1,0 +1,94 @@
+pipeline {
+    agent { label 'agent-1' }
+
+    environment {
+        DOCKER_USERNAME = 'venkatravi26071994'
+        DOCKER_PASSWORD = 'dckr_pat_JTrli2BddxJ6px99ia7M8j0z7K8'
+        DOCKER_REPO = 'venkatravi26071994/pythontest'
+        TARGET_CONTAINER_NAME = 'target_vm'
+        // SonarQube environment variables
+        SONAR_HOST_URL = 'http://172.17.0.3:9000'
+        SONAR_AUTH_TOKEN = 'sqa_865dd9a7ebae10ec10fc6fa7ea1ebadc7013391e'
+        SONAR_PROJECT_KEY = 'Test'
+        SONAR_SCANNER_HOME = '/opt/sonar-scanner'
+        PATH = "${SONAR_SCANNER_HOME}/bin/sonar-scanner"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout your code
+             checkout scm
+            }
+        }
+    
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def dockerImage = "${DOCKER_REPO}:${BUILD_NUMBER}"
+                    sh "docker build -t ${dockerImage} ."
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    // Run SonarQube analysis
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                        /opt/sonar-scanner -X \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_AUTH_TOKEN} \
+                            -Dsonar.verbose=true
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    def dockerImage = "${DOCKER_REPO}:${BUILD_NUMBER}"
+                    sh """
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    docker push ${dockerImage}
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Target VM') {
+            steps {
+                script {
+                    def dockerImage = "${DOCKER_REPO}:${BUILD_NUMBER}"
+                    sh """
+                    docker exec $TARGET_CONTAINER_NAME bash -c "
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin &&
+                    docker pull ${dockerImage} &&
+                    docker run -d --name rheo-flask-app-${BUILD_NUMBER} -p 8585:8585 ${dockerImage}
+                    "
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                def dockerImage = "${DOCKER_REPO}:${BUILD_NUMBER}"
+                sh "docker ps -a | grep -i ${dockerImage}"
+            }
+        }
+        success {
+            echo 'The build and deployment were successful!'
+        }
+        failure {
+            echo 'The build or deployment failed.'
+        }
+    }
+}
