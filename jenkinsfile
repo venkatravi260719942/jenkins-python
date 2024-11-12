@@ -6,7 +6,7 @@ pipeline {
         DOCKER_PASSWORD = 'dckr_pat_JTrli2BddxJ6px99ia7M8j0z7K8'
         DOCKER_REPO = 'venkatravi26071994/pythontest'
         TARGET_CONTAINER_NAME = 'target_vm'
-        GITHUB_TOKEN = credentials('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')
+        GITHUB_TOKEN = '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'
         SONAR_HOST_URL = 'http://172.18.0.4:9000'
         SONAR_AUTH_TOKEN = 'sqa_d3b3c38a8aa3b39de3b9e4cebddaa813326f8549'
         SONAR_PROJECT_KEY = 'Test'
