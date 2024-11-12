@@ -1,11 +1,67 @@
 pipeline {
     agent { label 'slave' }
+
+    environment {
+        DOCKER_USERNAME = 'venkatravi26071994'
+        DOCKER_PASSWORD = 'dckr_pat_JTrli2BddxJ6px99ia7M8j0z7K8'
+        DOCKER_REPO = 'venkatravi26071994/pythontest'
+        TARGET_CONTAINER_NAME = 'target_vm'
+        // SonarQube environment variables
+        SONAR_HOST_URL = 'http://172.18.0.4:9000'
+        SONAR_AUTH_TOKEN = 'sqa_d3b3c38a8aa3b39de3b9e4cebddaa813326f8549'
+        SONAR_PROJECT_KEY = 'Test'
+        SONAR_SCANNER_HOME = '/opt/sonar-scanner'
+        PATH = "${SONAR_SCANNER_HOME}/bin:${PATH}"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                // Checkout your code
-             checkout scm
+                // Checkout your code from GitHub
+                checkout scm
             }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def dockerImage = "${DOCKER_REPO}:${BUILD_NUMBER}"
+                    // Build the Docker image
+                    sh "docker build -t ${dockerImage} ."
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    // Run SonarQube analysis
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                        sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_AUTH_TOKEN} \
+                            -Dsonar.verbose=true
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                echo "Cleaning up"
+            }
+        }
+        success {
+            echo 'The build and deployment were successful!'
+        }
+        failure {
+            echo 'The build or deployment failed.'
         }
     }
 }
