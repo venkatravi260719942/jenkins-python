@@ -1,0 +1,11 @@
+pipeline {
+    agent { label 'slave' }
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout your code
+             checkout scm
+            }
+        }
+    }
+}
