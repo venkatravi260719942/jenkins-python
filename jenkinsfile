@@ -7,8 +7,8 @@ pipeline {
         DOCKER_REPO = 'venkatravi26071994/pythontest'
         TARGET_CONTAINER_NAME = 'target_vm'
         // SonarQube environment variables
-        SONAR_HOST_URL = 'http://172.17.0.3:9000'
-        SONAR_AUTH_TOKEN = 'sqa_865dd9a7ebae10ec10fc6fa7ea1ebadc7013391e'
+        SONAR_HOST_URL = 'http://172.18.0.4:9000'
+        SONAR_AUTH_TOKEN = 'sqa_d3b3c38a8aa3b39de3b9e4cebddaa813326f8549'
         SONAR_PROJECT_KEY = 'Test'
         SONAR_SCANNER_HOME = '/opt/sonar-scanner'
         PATH = "${SONAR_SCANNER_HOME}/bin/sonar-scanner"
@@ -17,8 +17,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Checkout your code
-             checkout scm
+                script {
+                    sh "git clone venkatravi260719942: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@https://github.com/venkatravi260719942/jenkins-python.git"
+                }
             }
         }
     
