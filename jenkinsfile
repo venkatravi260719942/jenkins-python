@@ -18,7 +18,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    sh "git clone venkatravi260719942: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@https://github.com/venkatravi260719942/jenkins-python.git"
+                    sh "git clone https://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@github.com/venkatravi260719942/jenkins-python.git -b main"
                 }
             }
         }
